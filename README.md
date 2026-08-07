@@ -2,330 +2,133 @@
 
 > Build the interviewer, not the interview.
 
-An AI-powered interview platform that conducts technical interviews using autonomous AI agents. The system generates questions dynamically, interacts with candidates in real time, evaluates responses, and provides structured feedback with scoring.
-
----
-
-# 📌 Problem Statement
-
-Traditional online interviews require human interviewers, making them expensive, difficult to scale, and inconsistent.
-
-This project automates the interview process by creating an AI Interview Agent capable of:
-
-- Conducting interviews autonomously
-- Asking adaptive follow-up questions
-- Evaluating candidate responses
-- Scoring technical performance
-- Generating interview reports
-
----
-
-# 🚀 Features
-
-- 🤖 AI-powered interviewer
-- 💬 Natural conversational interview
-- 🧠 Dynamic question generation
-- 📊 Automatic candidate evaluation
-- 📄 Interview summary generation
-- 📈 Candidate scoring
-- 🔒 Secure authentication
-- 🎙️ Voice/Text interview support (if implemented)
-- 📚 Interview history
-
----
-
-# 🛠️ Tech Stack
-
-## Frontend
-
-- React
-- Vite
-- Tailwind CSS
-- TypeScript
-
-## Backend
-
-- Node.js
-- Express.js
-
-## AI
-
-- OpenAI GPT
-- Prompt Engineering
-- RAG (optional)
-
-## Database
-
-- MongoDB
-
-## Authentication
-
-- JWT
-
-## Deployment
-
-- Vercel
-- Render
-
----
-
-# 🏗️ System Architecture
-
-```
-
-Candidate
-│
-▼
-Frontend (React)
-│
-▼
-Backend API (Express)
-│
-├────────► Database (MongoDB)
-│
-└────────► OpenAI API
-│
-▼
-Interview Engine
-│
-▼
-Evaluation Engine
-│
-▼
-Interview Report
-
-```
+An AI-powered interview platform that conducts technical interviews using autonomous AI agents. The system conducts adaptive technical interviews, evaluates candidate answers in real time, and outputs structured feedback reports.
 
 ---
 
 # 📂 Project Structure
 
 ```
-
-AI-Interview-Agent/
+ai-interview-agent/
 │
-├── frontend/
-│ ├── src/
-│ ├── public/
-│ └── package.json
+├── frontend/             # Next.js 15 App Router Frontend Application
+│   ├── app/              # Next.js App Router pages (/ , /interview , /feedback)
+│   ├── components/       # Reusable UI, candidate, interview & feedback components
+│   ├── hooks/            # Custom React hooks (useCandidate, useInterview, etc.)
+│   ├── services/         # API Service contract definitions (services/interview.ts)
+│   ├── types/            # Strict TypeScript interfaces
+│   └── package.json      # Frontend package configuration
 │
-├── backend/
-│ ├── controllers/
-│ ├── routes/
-│ ├── models/
-│ ├── middleware/
-│ ├── utils/
-│ └── package.json
+├── backend/              # Node.js / Express Backend Server
+│   ├── controllers/      # Route logic controllers
+│   ├── routes/           # Express route definitions
+│   ├── models/           # Data models & schemas
+│   ├── middleware/       # Express middleware
+│   ├── utils/            # Helper utilities
+│   └── package.json      # Backend package configuration
 │
-├── docs/
+├── docs/                 # Architectural & API Documentation
+│   ├── API.md            # API Endpoints & Request/Response Contracts
+│   ├── ARCHITECTURE.md   # Architectural Overview
+│   ├── PRD.md            # Product Requirements Document
+│   ├── PROMPTS.md        # LLM System Prompts & Guidelines
+│   └── TASKS.md          # Project Checklist & Status
 │
-├── README.md
-│
-└── .gitignore
-
+├── candidates.json       # Candidate dataset schema & roster
+├── curriculum.json       # 31-Day AI Curriculum & Mission Benchmarks
+├── technical-spec.md     # Official POST /api/interview Technical Specification
+└── README.md             # Main Repository Documentation
 ```
 
 ---
 
-# ⚙️ Installation
+# 🚀 Quick Start
 
-## Clone the repository
-
-```bash
-git clone https://github.com/YOUR_USERNAME/AI-Interview-Agent.git
-```
-
-Move into the project
-
-```bash
-cd AI-Interview-Agent
-```
-
----
-
-## Install Frontend
+## Frontend Setup (Next.js 15)
 
 ```bash
 cd frontend
-
 npm install
-
 npm run dev
 ```
 
+Open `http://localhost:3000` to access:
+- **Candidate Selection Portal (`/`)**
+- **Interview Room (`/interview`)**
+- **Interview Feedback Dashboard (`/feedback`)**
+
 ---
 
-## Install Backend
+## Backend Setup (Express API)
 
 ```bash
 cd backend
-
 npm install
-
 npm run dev
 ```
 
----
-
-# 🔑 Environment Variables
-
-Create a `.env` file inside the backend directory.
-
-```env
-PORT=5000
-
-MONGODB_URI=your_mongodb_uri
-
-JWT_SECRET=your_secret
-
-OPENAI_API_KEY=your_openai_api_key
-```
+Exposes `POST /api/interview` on `http://localhost:5000/api/interview` per `technical-spec.md`.
 
 ---
 
-# 📖 Usage
+# 🧪 API Contract (`POST /api/interview`)
 
-1. Register/Login
-2. Start Interview
-3. AI asks technical questions
-4. Candidate responds
-5. AI evaluates answers
-6. Final report is generated
-
----
-
-# 📊 Evaluation Criteria
-
-The AI evaluates candidates based on:
-
-- Technical Knowledge
-- Communication Skills
-- Problem Solving
-- Confidence
-- Accuracy
-- Completeness of Answers
-
----
-
-# 📸 Screenshots
-
-Add screenshots here.
-
+### Start Interview
+```json
+POST /api/interview
+{
+  "sessionId": "sess_12345",
+  "candidate": { "name": "Sarah Johnson", "jobRole": "Senior Data Engineer" }
+}
+```
+**Response:**
+```json
+{
+  "reply": "Welcome Sarah Johnson. Let's begin your interview.",
+  "done": false
+}
 ```
 
-screenshots/
-
-home.png
-
-login.png
-
-interview.png
-
-report.png
-
+### Conversation Turn
+```json
+POST /api/interview
+{
+  "sessionId": "sess_12345",
+  "message": "Virtual DOM reconciliation minimizes DOM reflows by batching updates."
+}
+```
+**Response:**
+```json
+{
+  "reply": "Thank you for explaining that. Let's move on to state management...",
+  "done": false
+}
 ```
 
----
-
-# 🎯 Future Improvements
-
-- Voice Interviews
-- Video Interviews
-- Resume Parsing
-- Company-specific Interview Modes
-- Coding Interview Support
-- Live Code Execution
-- AI Feedback Dashboard
-- Multi-language Support
-
----
-
-# 🤝 Team
-
-| Name | Role |
-|------|------|
-| Anayat | Full Stack Developer |
-| Faraz | Full Stack Developer |
-
----
-
-# 📅 Development Workflow
-
+### End Interview
+```json
+POST /api/interview
+{
+  "sessionId": "sess_12345",
+  "endSession": true
+}
 ```
-
-main
-│
-├── frontend
-├── backend
-└── feature branches
-
+**Response:**
+```json
+{
+  "reply": "Interview completed.",
+  "done": true,
+  "feedback": {
+    "summary": "Demonstrated solid technical knowledge and clear communication.",
+    "strengths": ["Strong domain fundamentals", "Clear communication"],
+    "gaps": ["Advanced performance tuning", "System design"],
+    "next": ["Practice performance optimization", "Build full-stack project"]
+  }
+}
 ```
-
----
-
-# 🧪 API Endpoints
-
-## Authentication
-
-```
-
-POST /api/auth/register
-
-POST /api/auth/login
-
-```
-
-## Interview
-
-```
-
-POST /api/interview/start
-
-POST /api/interview/answer
-
-GET /api/interview/report/:id
-
-```
-
----
-
-# 📦 Dependencies
-
-Frontend
-
-- React
-- React Router
-- Axios
-- Tailwind CSS
-
-Backend
-
-- Express
-- Mongoose
-- JWT
-- bcrypt
-- dotenv
-- cors
 
 ---
 
 # 📄 License
 
-This project is licensed under the MIT License.
-
----
-
-# 🙏 Acknowledgements
-
-- OpenAI
-- React
-- Express
-- MongoDB
-- Vite
-- Tailwind CSS
-
----
-
-# ⭐ Support
-
-If you found this project useful, consider giving it a ⭐ on GitHub.
+MIT License.

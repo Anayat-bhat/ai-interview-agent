@@ -1,2 +1,2 @@
-# ai-interview-agent
+$ai_interview_agent
 A production-ready AI Interview Agent that conducts adaptive technical interviews with personalized questioning, contextual memory, and structured feedback.

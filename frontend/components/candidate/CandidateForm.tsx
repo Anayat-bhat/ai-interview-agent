@@ -37,30 +37,36 @@ export const CandidateForm: React.FC = () => {
   const { candidate, setCandidate, resetSession } = useInterviewContext();
 
   const [formData, setFormData] = useState({
-    fullName: candidate.fullName || '',
+    fullName: candidate.fullName || candidate.name || '',
     email: candidate.email || '',
     technology: candidate.technology || 'React',
-    experienceLevel: candidate.experienceLevel || '1-2 Years',
+    experienceLevel: candidate.experienceLevel || candidate.experience || '1-2 Years',
     difficulty: candidate.difficulty || 'Medium',
   });
 
   useEffect(() => {
     setFormData({
-      fullName: candidate.fullName || '',
+      fullName: candidate.fullName || candidate.name || '',
       email: candidate.email || '',
       technology: candidate.technology || 'React',
-      experienceLevel: candidate.experienceLevel || '1-2 Years',
+      experienceLevel: candidate.experienceLevel || candidate.experience || '1-2 Years',
       difficulty: candidate.difficulty || 'Medium',
     });
   }, [candidate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const candidateName = formData.fullName || candidate.name || 'Sarah Connor';
+    const candidateExp = formData.experienceLevel || candidate.experience || '1-2 Years';
     setCandidate({
-      fullName: formData.fullName || 'Sarah Connor',
+      id: candidate.id || 1,
+      name: candidateName,
+      role: candidate.role || `${formData.technology} Developer`,
+      experience: candidateExp,
+      fullName: candidateName,
       email: formData.email || 'sarah@example.com',
       technology: formData.technology,
-      experienceLevel: formData.experienceLevel,
+      experienceLevel: candidateExp,
       difficulty: formData.difficulty,
     });
     resetSession();

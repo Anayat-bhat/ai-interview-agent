@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import { Candidate, Technology, ExperienceLevel, Difficulty } from '@/types/candidate';
+import { Candidate } from '@/types/candidate';
 
 /**
  * Reusable hook placeholder for candidate form management
  */
 export function useCandidate() {
   const [candidate, setCandidate] = useState<Candidate>({
+    id: 1,
+    name: '',
+    role: '',
+    experience: '',
     fullName: '',
     email: '',
     technology: 'React',
@@ -19,6 +23,10 @@ export function useCandidate() {
 
   const resetCandidate = () => {
     setCandidate({
+      id: 1,
+      name: '',
+      role: '',
+      experience: '',
       fullName: '',
       email: '',
       technology: 'React',

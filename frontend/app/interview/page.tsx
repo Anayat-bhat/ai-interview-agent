@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import candidatesData from '@/data/candidates.json';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -24,7 +24,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 
-export default function InterviewPage() {
+function InterviewContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const candidateId = searchParams.get('id');
@@ -278,5 +278,22 @@ export default function InterviewPage() {
         </div>
       </div>
     </PageContainer>
+  );
+}
+
+export default function InterviewPage() {
+  return (
+    <Suspense
+      fallback={
+        <PageContainer maxWidth="xl" className="py-12 text-center">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mx-auto" />
+            <div className="h-64 bg-gray-100 rounded-2xl" />
+          </div>
+        </PageContainer>
+      }
+    >
+      <InterviewContent />
+    </Suspense>
   );
 }

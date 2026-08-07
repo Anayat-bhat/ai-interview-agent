@@ -9,6 +9,9 @@ export interface Candidate {
   name: string;
   role: string;
   experience: string;
+  fullName?: string;
+  email?: string;
   technology?: Technology | string;
+  experienceLevel?: ExperienceLevel | string;
   difficulty?: Difficulty | string;
 }

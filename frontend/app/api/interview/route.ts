@@ -81,6 +81,24 @@ function getQuestionsForRole(jobRole?: string) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+
+    // Try proxying to Express backend server on port 5000 first
+    try {
+      const backendRes = await fetch('http://localhost:5000/api/interview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(2000),
+      });
+
+      if (backendRes.ok) {
+        const backendData = await backendRes.json();
+        return NextResponse.json(backendData);
+      }
+    } catch (e) {
+      // Backend not reached, fallback to built-in session logic below
+    }
+
     const { sessionId, candidate, message, endSession } = body;
 
     if (!sessionId) {

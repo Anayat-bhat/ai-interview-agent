@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Start interview request
+    // Start interview request (candidate object provided or initial turn)
     if (candidate) {
       const candidateName = candidate.name || candidate.member?.name || 'Candidate';
       return NextResponse.json({
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Conversation turn request
+    // Conversation turn request (message provided)
     if (message) {
       return NextResponse.json({
         reply: `Thank you for your answer: "${message.slice(0, 60)}...". Let's move on to the next technical topic.`,
@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Default start response
     return NextResponse.json({
       reply: "Welcome. Let's begin your interview.",
       done: false,

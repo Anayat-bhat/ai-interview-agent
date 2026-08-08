@@ -17,9 +17,10 @@ export const CandidateGrid: React.FC<CandidateGridProps> = ({ candidates }) => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {candidates.map((candidate) => (
-        <CandidateCard key={candidate.id} candidate={candidate} />
-      ))}
+      {candidates.map((candidate, idx) => {
+        const key = candidate.member?.id || candidate.id || idx;
+        return <CandidateCard key={key} candidate={candidate} />;
+      })}
     </div>
   );
 };

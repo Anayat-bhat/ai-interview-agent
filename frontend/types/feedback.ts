@@ -1,3 +1,12 @@
+export interface Feedback {
+  summary: string;
+  strengths: string[];
+  gaps: string[];
+  next: string[];
+  score?: number;
+  nextSteps?: string[];
+}
+
 export type ScoreCategory = 'technical' | 'communication' | 'problemSolving' | 'confidence';
 
 export interface Score {
@@ -8,14 +17,17 @@ export interface Score {
   description: string;
 }
 
-export interface Feedback {
-  overallScore: number;
+export interface DetailedFeedback {
+  overallScore?: number;
   summary: string;
-  aiDetailedFeedback: string;
-  scores: Score[];
+  aiDetailedFeedback?: string;
+  scores?: Score[];
   strengths: string[];
-  weaknesses: string[];
-  recommendedTopics: string[];
+  weaknesses?: string[];
+  gaps?: string[];
+  next?: string[];
+  nextSteps?: string[];
+  recommendedTopics?: string[];
 }
 
 export interface InterviewReport {
@@ -25,5 +37,5 @@ export interface InterviewReport {
   technology: string;
   difficulty: string;
   completedAt: string;
-  feedback: Feedback;
+  feedback: Feedback | DetailedFeedback;
 }

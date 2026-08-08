@@ -260,6 +260,17 @@ export const InterviewProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           `Elaborate further on internal runtime architectures`,
           `Mention memory leak prevention and edge-case error handling`,
         ],
+        gaps: [
+          `Provide more practical code implementation examples`,
+          `Elaborate further on internal runtime architectures`,
+          `Mention memory leak prevention and edge-case error handling`,
+        ],
+        next: [
+          `${techDomain} Internal Architecture`,
+          `Advanced Concurrency & Async Patterns`,
+          `Memory Leak Profiling & Optimization`,
+          `Production Security & Error Boundaries`,
+        ],
         recommendedTopics: [
           `${techDomain} Internal Architecture`,
           `Advanced Concurrency & Async Patterns`,

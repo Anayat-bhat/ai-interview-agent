@@ -2,6 +2,8 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.interview import router as interview_router
+
 app = FastAPI(
     title="AI Interview Agent Backend",
     description="Backend API service for conducting AI-driven technical candidate interviews.",
@@ -16,6 +18,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Register API Routers
+app.include_router(interview_router)
 
 
 @app.get("/", summary="Health check endpoint")

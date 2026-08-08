@@ -24,3 +24,12 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+# TypeScript build cache
+*.tsbuildinfo
+
+# Next.js
+.next/
+out/
+
+# Node
+node_modules/

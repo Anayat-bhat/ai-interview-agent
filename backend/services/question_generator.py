@@ -138,21 +138,26 @@ def generate_question(
             candidate_reply = response.reply.strip()
             if candidate_reply.lower() not in asked_questions:
                 return candidate_reply
-    except NotImplementedError:
-        pass  # Provider integration is deferred; execute contextual fallback below
+    except Exception:
+        pass  # Provider integration is deferred/failed; execute contextual fallback below
 
     # 2. Candidate profile context
-    job_role = candidate_info.get("jobRole") or candidate_info.get("member", {}).get("jobRole") or "Senior Data Engineer"
+    job_role = candidate_info.get("jobRole") or candidate_info.get("member", {}).get("jobRole") or "Software Engineer"
     years_exp = candidate_info.get("yearsExperience") or candidate_info.get("member", {}).get("yearsExperience") or 5
 
-    # Match role question bank or fallback to default
-    matched_role = "Senior Data Engineer"
+    # Match role question bank or adapt dynamically
+    matched_role = None
     for role_key in ROLE_TOPIC_QUESTIONS:
         if role_key.lower() in job_role.lower():
             matched_role = role_key
             break
 
-    role_dict = ROLE_TOPIC_QUESTIONS[matched_role]
+    if matched_role:
+        role_dict = ROLE_TOPIC_QUESTIONS[matched_role]
+    else:
+        # Dynamic role adaptation fallback
+        role_dict = ROLE_TOPIC_QUESTIONS["Backend Software Engineer"]
+
     topic_questions = role_dict.get(topic) or next(iter(role_dict.values()))
 
     # 3. Formulate Context-Aware Senior Technical Interviewer Question

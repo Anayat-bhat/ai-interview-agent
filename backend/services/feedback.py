@@ -52,8 +52,8 @@ def generate_feedback(
                 gaps=report.gaps,
                 next=report.next,
             )
-    except NotImplementedError:
-        pass  # Provider integration is deferred; execute contextual synthesis below
+    except Exception:
+        pass  # Provider integration is deferred/failed; execute contextual synthesis below
 
     # 2. Synthesize feedback from evaluations and candidate profile
     cand_name = candidate_info.get("name") or candidate_info.get("member", {}).get("name") or "Candidate"

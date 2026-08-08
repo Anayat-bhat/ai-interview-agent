@@ -93,6 +93,35 @@ async def handle_interview_turn(req: InterviewRequest) -> InterviewResponse:
     if not state:
         state = session_manager.get_or_create_session(session_id, req.candidate)
 
+    if state.questions_asked == 0:
+        plan = determine_next_turn(state)
+        state.current_topic = plan.next_topic
+        state.current_curriculum_day = plan.next_day
+
+        question_text = generate_question(
+            candidate_info=state.candidate,
+            topic=plan.next_topic,
+            day=plan.next_day,
+            action=plan.action,
+            session_id=session_id,
+            asked_questions=state.asked_questions,
+            probe_reason=plan.probe_reason,
+        )
+
+        state.questions_asked = 1
+        state.covered_days.add(plan.next_day)
+        state.asked_questions.add(question_text.strip().lower())
+        state.history.append({"sender": "ai", "content": question_text})
+        session_manager.save_session(state)
+
+        cand_name = state.candidate.get("name") or state.candidate.get("member", {}).get("name") or "Candidate"
+        job_role = state.candidate.get("jobRole") or state.candidate.get("member", {}).get("jobRole") or "Software Engineer"
+
+        return InterviewResponse(
+            reply=f"Welcome {cand_name}. Let's begin your technical interview for the {job_role} position. {question_text}",
+            done=False,
+        )
+
     user_message = req.message or ""
     state.history.append({"sender": "candidate", "content": user_message})
 

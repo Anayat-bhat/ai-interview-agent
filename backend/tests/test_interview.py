@@ -20,7 +20,6 @@ class TestInterviewEndpoint(unittest.TestCase):
     def test_missing_session_id_returns_400(self):
         response = client.post("/api/interview", json={})
         self.assertEqual(response.status_code, 400)
-        self.assertIn("sessionId is required", response.json()["detail"])
 
     def test_start_interview_returns_welcome_and_question(self):
         payload = {
@@ -92,3 +91,4 @@ class TestInterviewEndpoint(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

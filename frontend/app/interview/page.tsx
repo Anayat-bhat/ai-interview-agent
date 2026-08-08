@@ -60,7 +60,7 @@ function InterviewContent() {
   const [questionTitle, setQuestionTitle] = useState('Core Architecture & Systems Evaluation');
   const [questionDesc, setQuestionDesc] = useState('Answer the technical interviewer question provided in the conversation panel.');
 
-  const totalQuestions = 3;
+  const totalQuestions = 8;
   const currentQuestionNumber = currentQuestionIndex + 1;
   const progressPercent = Math.round((currentQuestionNumber / totalQuestions) * 100);
 
@@ -97,7 +97,7 @@ function InterviewContent() {
       
       setChatMessages((prev) => [...prev, { sender: 'ai', text: res.reply }]);
 
-      if (res.isInterviewComplete || currentQuestionIndex >= totalQuestions - 1) {
+      if (res.isInterviewComplete || (res as any).done || currentQuestionIndex >= totalQuestions - 1) {
         if (res.feedback) {
           if (typeof window !== 'undefined') {
             localStorage.setItem('ai_interview_latest_feedback', JSON.stringify({

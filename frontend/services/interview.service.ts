@@ -26,7 +26,7 @@ export const InterviewService = {
       technology: candidateData?.technology || 'Software Engineering',
       difficulty: candidateData?.difficulty || 'Medium',
       currentQuestionIndex: 0,
-      totalQuestions: 3,
+      totalQuestions: 8,
       durationSeconds: 60,
       status: 'in_progress',
       topics: ['System Design', 'Algorithms', 'Core Fundamentals'],

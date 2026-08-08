@@ -16,15 +16,18 @@ interface ProgressSidebarProps {
 }
 
 export const ProgressSidebar: React.FC<ProgressSidebarProps> = ({
-  currentQuestion = 3,
-  totalQuestions = 10,
+  currentQuestion = 1,
+  totalQuestions = 8,
   difficulty = 'Medium',
   topics = [
-    'Virtual DOM & Reconciliation',
-    'Hooks & Lifecycle Patterns',
-    'State Architecture & Batching',
-    'Performance Optimization',
-    'SSR & React Server Components',
+    'Environment & Tooling',
+    'Embeddings & Vector Search',
+    'LLM Core, Prompting & Fine-Tuning',
+    'Chatbot Application Build',
+    'Agentic AI & MCP',
+    'Evaluation, Security & Deployment',
+    'Production Architecture',
+    'Capstone System Integration',
   ],
   tips = [
     'Focus on clear architectural reasoning over memorized syntax.',

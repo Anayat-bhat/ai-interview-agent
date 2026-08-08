@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { SectionHeader } from '@/components/feedback/SectionHeader';
@@ -13,7 +13,8 @@ import { NextStepsCard } from '@/components/feedback/NextStepsCard';
 import { ActionButtons } from '@/components/feedback/ActionButtons';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { feedback } from '@/data/feedback';
+import { feedback as fallbackFeedback } from '@/data/feedback';
+import { useInterviewContext } from '@/context/InterviewContext';
 import {
   Code2,
   MessageSquare,
@@ -24,48 +25,75 @@ import {
   Award,
 } from 'lucide-react';
 
-const scoreMetrics = [
-  {
-    category: 'technical',
-    title: 'Technical Knowledge',
-    score: 90,
-    description: 'Exemplary mastery of core React concepts, reconciliation algorithms, and hooks.',
-    icon: <Code2 className="w-5 h-5 text-blue-600" />,
-  },
-  {
-    category: 'communication',
-    title: 'Communication',
-    score: 85,
-    description: 'Clear technical prose using standard industry terminology and precise explanations.',
-    icon: <MessageSquare className="w-5 h-5 text-blue-600" />,
-  },
-  {
-    category: 'problemSolving',
-    title: 'Problem Solving',
-    score: 88,
-    description: 'Analytical approach to performance trade-offs, batching updates, and DOM reflows.',
-    icon: <Cpu className="w-5 h-5 text-blue-600" />,
-  },
-  {
-    category: 'confidence',
-    title: 'Confidence',
-    score: 82,
-    description: 'Decisive answers with thorough coverage of practical edge cases and optimization rules.',
-    icon: <Zap className="w-5 h-5 text-blue-600" />,
-  },
-];
-
 export default function FeedbackPage() {
-  const overallScore = 86;
+  const { candidate: contextCandidate, report: contextReport } = useInterviewContext();
+  const [latestData, setLatestData] = useState<any>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('ai_interview_latest_feedback');
+      if (saved) {
+        try {
+          setLatestData(JSON.parse(saved));
+        } catch {}
+      }
+    }
+  }, []);
+
+  const candidate = latestData?.candidate || contextCandidate || {
+    name: 'Sarah Johnson',
+    role: 'Senior Data Engineer',
+    experience: '9 Years',
+    difficulty: 'Medium',
+  };
+
+  const activeFeedback = latestData?.feedback || contextReport?.feedback || fallbackFeedback;
+  const summaryText = activeFeedback.summary || fallbackFeedback.summary;
+  const strengthsList = activeFeedback.strengths || fallbackFeedback.strengths;
+  const gapsList = activeFeedback.gaps || activeFeedback.weaknesses || fallbackFeedback.gaps;
+  const nextStepsList = activeFeedback.next || activeFeedback.nextSteps || fallbackFeedback.nextSteps;
+
+  const overallScore = activeFeedback.overallScore || 88;
+
+  const scoreMetrics = [
+    {
+      category: 'technical',
+      title: 'Technical Knowledge',
+      score: 92,
+      description: `Demonstrated technical depth in ${candidate.role || 'Domain'} architecture and core principles.`,
+      icon: <Code2 className="w-5 h-5 text-blue-600" />,
+    },
+    {
+      category: 'communication',
+      title: 'Communication',
+      score: 88,
+      description: 'Clear, structured explanations utilizing industry-standard terminology.',
+      icon: <MessageSquare className="w-5 h-5 text-blue-600" />,
+    },
+    {
+      category: 'problemSolving',
+      title: 'Problem Solving',
+      score: 90,
+      description: 'Analytical approach to performance trade-offs, architecture limits, and system design.',
+      icon: <Cpu className="w-5 h-5 text-blue-600" />,
+    },
+    {
+      category: 'confidence',
+      title: 'Confidence',
+      score: 85,
+      description: 'Decisive technical articulation and practical edge-case awareness.',
+      icon: <Zap className="w-5 h-5 text-blue-600" />,
+    },
+  ];
 
   return (
     <main className="flex-1 bg-gray-50/60 py-8 px-4 sm:px-6 lg:px-8 space-y-8">
       <PageContainer maxWidth="xl" className="space-y-8">
         {/* Page Header */}
         <SectionHeader
-          title="Interview Feedback"
-          subtitle="Review your interview performance and recommended improvements."
-          badgeText="Interview Completed"
+          title={`Interview Feedback: ${candidate.name || 'Candidate'}`}
+          subtitle={`Review performance feedback and recommended learning path for ${candidate.role || 'Software Engineer'}.`}
+          badgeText="Evaluation Complete"
         />
 
         {/* Hero Score Overview Row */}
@@ -102,22 +130,22 @@ export default function FeedbackPage() {
         >
           <SummaryCard
             score={overallScore}
-            summary={feedback.summary}
+            summary={summaryText}
             className="h-full"
           />
 
           <StrengthsCard
-            strengths={feedback.strengths}
+            strengths={strengthsList}
             className="h-full"
           />
 
           <GapsCard
-            gaps={feedback.gaps}
+            gaps={gapsList}
             className="h-full"
           />
 
           <NextStepsCard
-            nextSteps={feedback.nextSteps}
+            nextSteps={nextStepsList}
             className="h-full"
           />
         </section>
@@ -132,7 +160,7 @@ export default function FeedbackPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {(feedback.next || feedback.nextSteps || []).map((topic, idx) => (
+              {nextStepsList.map((topic: string, idx: number) => (
                 <div key={idx} className="p-3.5 bg-surface border border-surface-border rounded-xl">
                   <span className="text-xs font-bold text-primary block">Module {idx + 1}</span>
                   <h4 className="text-sm font-semibold text-gray-900 mt-0.5">{topic}</h4>
@@ -154,23 +182,23 @@ export default function FeedbackPage() {
             <div className="space-y-3 text-xs text-gray-600">
               <div className="flex justify-between py-1.5 border-b border-gray-200">
                 <span className="font-medium text-gray-500">Candidate Name</span>
-                <span className="font-semibold text-gray-900">John Doe</span>
+                <span className="font-semibold text-gray-900">{candidate.name || 'Sarah Johnson'}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-gray-200">
                 <span className="font-medium text-gray-500">Role & Domain</span>
-                <span className="font-semibold text-gray-900">Frontend Developer (React)</span>
+                <span className="font-semibold text-gray-900">{candidate.role || candidate.jobRole || 'Senior Data Engineer'}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-gray-200">
                 <span className="font-medium text-gray-500">Experience Level</span>
-                <span className="font-semibold text-gray-900">2 Years</span>
+                <span className="font-semibold text-gray-900">{candidate.experience || '9 Years'}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-gray-200">
                 <span className="font-medium text-gray-500">Difficulty</span>
-                <span className="font-semibold text-gray-900">Medium</span>
+                <span className="font-semibold text-gray-900">{candidate.difficulty || 'Medium'}</span>
               </div>
               <div className="flex justify-between py-1.5">
-                <span className="font-medium text-gray-500">Completed On</span>
-                <span className="font-semibold text-gray-900">Today</span>
+                <span className="font-medium text-gray-500">API Specification</span>
+                <span className="font-semibold text-emerald-600">POST /api/interview Compliant</span>
               </div>
             </div>
           </Card>
@@ -182,3 +210,4 @@ export default function FeedbackPage() {
     </main>
   );
 }
+

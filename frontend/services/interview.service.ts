@@ -1,57 +1,68 @@
 import { InterviewQuestion, InterviewSession } from '@/types/interview';
 
 /**
- * Service for managing AI interview sessions and question fetching.
- * Placeholder implementation - no backend API connected.
+ * Service for managing AI interview sessions and question fetching via POST /api/interview.
  */
 export const InterviewService = {
   /**
-   * TODO: Implement API call to initialize a new interview session
-   * POST /api/interview/start
+   * Initializes a new interview session via POST /api/interview
    */
-  async startInterview(candidateId: string): Promise<InterviewSession> {
-    // TODO: Connect to backend API when available
-    console.log('TODO: Call start interview API for candidate', candidateId);
+  async startInterview(candidateId: string, candidateData?: any): Promise<InterviewSession> {
+    const sessionId = candidateId || `sess_${Date.now()}`;
+    const res = await fetch('/api/interview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId,
+        candidate: candidateData || { id: candidateId, name: 'Candidate' },
+      }),
+    });
+
+    const data = await res.json();
+
     return {
-      id: 'sess_mock_98765',
-      candidateName: 'John Doe',
-      technology: 'React',
-      difficulty: 'Medium',
-      currentQuestionIndex: 2,
-      totalQuestions: 10,
-      durationSeconds: 45,
+      id: sessionId,
+      candidateName: candidateData?.name || candidateData?.member?.name || 'Candidate',
+      technology: candidateData?.technology || 'Software Engineering',
+      difficulty: candidateData?.difficulty || 'Medium',
+      currentQuestionIndex: 0,
+      totalQuestions: 3,
+      durationSeconds: 60,
       status: 'in_progress',
-      topics: ['Virtual DOM', 'React Fiber', 'Custom Hooks', 'State Management'],
+      topics: ['System Design', 'Algorithms', 'Core Fundamentals'],
     };
   },
 
   /**
-   * TODO: Implement API call to submit candidate's answer for evaluation
-   * POST /api/interview/answer
+   * Submits candidate's answer for evaluation via POST /api/interview
    */
-  async submitAnswer(questionId: string, answerText: string): Promise<{ success: boolean }> {
-    // TODO: Connect to backend API when available
-    console.log('TODO: Submit answer for question', questionId, answerText);
-    return { success: true };
+  async submitAnswer(sessionId: string, messageText: string): Promise<{ reply: string; done: boolean; feedback?: any }> {
+    const res = await fetch('/api/interview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId,
+        message: messageText,
+      }),
+    });
+
+    return await res.json();
   },
 
   /**
-   * TODO: Implement API call to fetch current or next question from LLM pipeline
-   * GET /api/interview/question/:id
+   * Finalizes interview and requests report generation via POST /api/interview
    */
-  async getQuestion(questionId: string): Promise<InterviewQuestion | null> {
-    // TODO: Connect to backend API when available
-    console.log('TODO: Fetch question from API', questionId);
-    return null;
-  },
+  async endInterview(sessionId: string): Promise<{ reply: string; done: boolean; feedback?: any }> {
+    const res = await fetch('/api/interview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId,
+        endSession: true,
+      }),
+    });
 
-  /**
-   * TODO: Implement API call to finalize interview and request report generation
-   * POST /api/interview/end
-   */
-  async endInterview(sessionId: string): Promise<{ reportId: string }> {
-    // TODO: Connect to backend API when available
-    console.log('TODO: End interview session via API', sessionId);
-    return { reportId: 'rep_mock_54321' };
+    return await res.json();
   },
 };
+

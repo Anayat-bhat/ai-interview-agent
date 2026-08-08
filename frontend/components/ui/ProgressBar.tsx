@@ -1,21 +1,27 @@
 import React from 'react';
 
 interface ProgressBarProps {
-  value: number; // 0 - 100
+  value: number; // 0 - 100 or current value relative to max
+  max?: number;
   height?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
+  showValue?: boolean;
   className?: string;
   color?: 'primary' | 'success' | 'warning' | 'danger';
 }
 
 export const ProgressBar: React.FC<ProgressBarProps> = ({
   value,
+  max = 100,
   height = 'md',
   showLabel = false,
+  showValue = false,
   className = '',
   color = 'primary',
 }) => {
-  const clampedValue = Math.min(100, Math.max(0, value));
+  const percentage = (value / max) * 100;
+  const clampedValue = Math.min(100, Math.max(0, percentage));
+  const shouldShowLabel = showLabel || showValue;
 
   const heightMap = {
     sm: 'h-1.5',
@@ -32,7 +38,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
 
   return (
     <div className={`w-full ${className}`}>
-      {showLabel && (
+      {shouldShowLabel && (
         <div className="flex justify-between items-center mb-1 text-xs font-medium text-gray-500">
           <span>Progress</span>
           <span>{Math.round(clampedValue)}%</span>

@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Bot, ChevronLeft } from 'lucide-react';
+import { Bot, ChevronLeft, CheckCircle2 } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 
 interface ChatHeaderProps {
@@ -44,19 +44,27 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           </div>
         </div>
 
-        {/* Right: Progress & Status */}
+        {/* Right: Progress, Status & Finish Action */}
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex flex-col items-end">
+          <div className="hidden md:flex flex-col items-end">
             <span className="text-xs font-bold text-gray-900 dark:text-gray-100">
               Question {currentQuestion} / {totalQuestions}
             </span>
             <span className="text-[11px] text-gray-400">Progress</span>
           </div>
 
-          <Badge variant="success" className="gap-1.5 px-3 py-1 text-xs">
+          <Badge variant="success" className="gap-1.5 px-3 py-1 text-xs hidden sm:inline-flex">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             Interview Active
           </Badge>
+
+          <Link
+            href="/feedback"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-lg shadow-xs transition-colors"
+          >
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>Complete & View Feedback</span>
+          </Link>
         </div>
       </div>
     </header>

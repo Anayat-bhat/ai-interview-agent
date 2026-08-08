@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import candidatesData from '@/data/candidates.json';
@@ -13,37 +13,17 @@ import { Button } from '@/components/ui/Button';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { Timer } from '@/components/ui/Timer';
 import { Badge } from '@/components/ui/Badge';
-import { ArrowLeft, ArrowRight, CheckCircle2, ChevronLeft, Bot } from 'lucide-react';
-
-const mockQuestions = [
-  {
-    title: 'Explain React Virtual DOM and why it improves rendering performance.',
-    description: 'Focus on reconciliation algorithms, synthetic DOM snapshots, diffing overhead vs browser DOM reflows, and batching updates.',
-    category: 'Architecture & Performance',
-  },
-  {
-    title: 'What are React Server Components (RSC) and how do they differ from Client Components?',
-    description: 'Discuss bundle size optimization, server-side data fetching, hydration boundaries, and use client directive rules.',
-    category: 'Next.js & React 19',
-  },
-  {
-    title: 'How does the React useEffect hook handle side effects and memory leaks?',
-    description: 'Explain cleanup functions, dependency arrays, stale closures, and race condition prevention.',
-    category: 'Hooks & State',
-  },
-  {
-    title: 'Explain the difference between Context API and state management libraries like Zustand/Redux.',
-    description: 'Discuss re-render cascades, selector patterns, prop drilling solutions, and global state architecture.',
-    category: 'State Management',
-  },
-];
+import { ArrowLeft, ArrowRight, CheckCircle2, ChevronLeft, Bot, MessageSquare, Send, Sparkles } from 'lucide-react';
+import { useInterviewContext } from '@/context/InterviewContext';
+import { sendMessage, startInterview } from '@/services/interview';
 
 function InterviewContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const candidateId = searchParams.get('id');
+  const { candidate: contextCandidate, setCandidate, setAnswerForQuestion, completeInterview } = useInterviewContext();
 
-  const candidate: Candidate = React.useMemo(() => {
+  const candidate: Candidate = useMemo(() => {
     const list: any[] = (candidatesData as any).candidates || candidatesData;
     if (candidateId) {
       const found = list.find((c) => {
@@ -61,7 +41,7 @@ function InterviewContent() {
         };
       }
     }
-    return {
+    return contextCandidate || {
       id: 'CAND-001',
       name: 'Sarah Johnson',
       role: 'Senior Data Engineer',
@@ -69,30 +49,101 @@ function InterviewContent() {
       technology: 'AI & Data Engineering',
       difficulty: 'Medium',
     };
-  }, [candidateId]);
+  }, [candidateId, contextCandidate]);
 
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(2); // 0-indexed (Question 3)
+  const sessionId = useMemo(() => `sess_${candidate.id || 'default'}_${Date.now()}`, [candidate.id]);
+
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answerText, setAnswerText] = useState('');
-  const totalQuestions = 10;
+  const [chatMessages, setChatMessages] = useState<Array<{ sender: 'ai' | 'candidate'; text: string }>>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [questionTitle, setQuestionTitle] = useState('Core Architecture & Systems Evaluation');
+  const [questionDesc, setQuestionDesc] = useState('Answer the technical interviewer question provided in the conversation panel.');
+
+  const totalQuestions = 3;
   const currentQuestionNumber = currentQuestionIndex + 1;
   const progressPercent = Math.round((currentQuestionNumber / totalQuestions) * 100);
 
-  const currentQ = mockQuestions[currentQuestionIndex % mockQuestions.length];
+  // Initialize session on mount
+  useEffect(() => {
+    let isMounted = true;
+    async function init() {
+      try {
+        const res = await startInterview({ candidateId: sessionId, candidate });
+        if (isMounted) {
+          setChatMessages([{ sender: 'ai', text: res.firstQuestion }]);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setChatMessages([{ sender: 'ai', text: `Welcome ${candidate.name}. Let's begin your technical interview for the ${candidate.role} position.` }]);
+        }
+      }
+    }
+    init();
+    return () => { isMounted = false; };
+  }, [sessionId, candidate]);
 
-  const handleNext = () => {
-    if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1);
-      setAnswerText('');
-    } else {
-      router.push('/feedback');
+  const handleSendAnswer = async () => {
+    if (!answerText.trim() || isSubmitting) return;
+
+    const userMsg = answerText.trim();
+    setAnswerForQuestion(currentQuestionIndex, userMsg);
+    setChatMessages((prev) => [...prev, { sender: 'candidate', text: userMsg }]);
+    setAnswerText('');
+    setIsSubmitting(true);
+
+    try {
+      const res = await sendMessage({ interviewId: sessionId, message: userMsg });
+      
+      setChatMessages((prev) => [...prev, { sender: 'ai', text: res.reply }]);
+
+      if (res.isInterviewComplete || currentQuestionIndex >= totalQuestions - 1) {
+        if (res.feedback) {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('ai_interview_latest_feedback', JSON.stringify({
+              candidate,
+              feedback: res.feedback,
+            }));
+          }
+        }
+        completeInterview();
+        setTimeout(() => {
+          router.push('/feedback');
+        }, 1200);
+      } else {
+        setCurrentQuestionIndex((prev) => prev + 1);
+      }
+    } catch (err) {
+      setChatMessages((prev) => [...prev, { sender: 'ai', text: 'Thank you for your response. Let us proceed to the next technical topic.' }]);
+      if (currentQuestionIndex >= totalQuestions - 1) {
+        completeInterview();
+        router.push('/feedback');
+      } else {
+        setCurrentQuestionIndex((prev) => prev + 1);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handlePrevious = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex((prev) => prev - 1);
-      setAnswerText('');
-    }
+  const handleEndInterview = async () => {
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/interview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, endSession: true }),
+      });
+      const data = await res.json();
+      if (data.feedback && typeof window !== 'undefined') {
+        localStorage.setItem('ai_interview_latest_feedback', JSON.stringify({
+          candidate,
+          feedback: data.feedback,
+        }));
+      }
+    } catch (e) {}
+    completeInterview();
+    router.push('/feedback');
   };
 
   return (
@@ -114,7 +165,7 @@ function InterviewContent() {
               </div>
               <div>
                 <h1 className="text-base font-bold text-gray-900 leading-tight">
-                  AI Interview Room
+                  AI Technical Interview Room
                 </h1>
                 <p className="text-xs text-gray-500">
                   Candidate: <span className="font-semibold text-gray-700">{candidate.name}</span> ({candidate.role})
@@ -124,10 +175,8 @@ function InterviewContent() {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Timer component */}
-            <Timer initialSeconds={45} />
+            <Timer initialSeconds={60} />
 
-            {/* Question Counter */}
             <div className="hidden sm:flex flex-col items-end">
               <span className="text-xs font-bold text-gray-900">
                 Question {currentQuestionNumber} / {totalQuestions}
@@ -135,17 +184,16 @@ function InterviewContent() {
               <span className="text-[11px] text-gray-400">Progress: {progressPercent}%</span>
             </div>
 
-            <Link
-              href="/feedback"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition"
+            <button
+              onClick={handleEndInterview}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition cursor-pointer"
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>End Interview</span>
-            </Link>
+            </button>
           </div>
         </div>
 
-        {/* Top Progress Bar */}
         <div className="max-w-7xl mx-auto mt-3">
           <ProgressBar value={progressPercent} max={100} showValue={false} color="primary" className="h-1.5" />
         </div>
@@ -154,45 +202,85 @@ function InterviewContent() {
       {/* Main Body Layout */}
       <PageContainer maxWidth="xl" className="py-8 flex-1">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column (8 Cols): Question Card, Answer Textarea, Controls */}
+          {/* Left Column (8 Cols): AI Conversation Stream & Answer Form */}
           <div className="lg:col-span-8 space-y-6">
-            <QuestionCard
-              questionNumber={currentQuestionNumber}
-              totalQuestions={totalQuestions}
-              title={currentQ.title}
-              description={currentQ.description}
-              category={currentQ.category}
-              difficulty={(candidate.difficulty as Difficulty) || 'Medium'}
-            />
+            {/* Live AI Interviewer Conversation Display */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                <div className="flex items-center gap-2 text-sm font-bold text-gray-900">
+                  <Bot className="w-5 h-5 text-blue-600" />
+                  <span>AI Assessor Stream</span>
+                </div>
+                <Badge variant="primary" icon={<Sparkles className="w-3 h-3" />}>
+                  POST /api/interview Active
+                </Badge>
+              </div>
 
+              <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+                {chatMessages.map((msg, idx) => (
+                  <div
+                    key={idx}
+                    className={`flex items-start gap-3 ${
+                      msg.sender === 'candidate' ? 'flex-row-reverse' : ''
+                    }`}
+                  >
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
+                        msg.sender === 'candidate'
+                          ? 'bg-primary text-white'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}
+                    >
+                      {msg.sender === 'candidate' ? 'YOU' : 'AI'}
+                    </div>
+                    <div
+                      className={`rounded-2xl p-4 text-sm leading-relaxed max-w-[85%] ${
+                        msg.sender === 'candidate'
+                          ? 'bg-primary text-white rounded-tr-none'
+                          : 'bg-gray-100 text-gray-900 rounded-tl-none border border-gray-200/80'
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Answer Input Box */}
             <AnswerBox
               value={answerText}
               onChange={setAnswerText}
-              placeholder="Type your detailed technical explanation here..."
+              placeholder="Type your technical response here..."
             />
 
-            {/* Action Buttons: Previous, Next, End Interview */}
+            {/* Controls */}
             <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
               <Button
                 variant="outline"
                 size="md"
-                onClick={handlePrevious}
+                onClick={() => {
+                  if (currentQuestionIndex > 0) setCurrentQuestionIndex((prev) => prev - 1);
+                }}
                 disabled={currentQuestionIndex === 0}
                 icon={<ArrowLeft className="w-4 h-4" />}
               >
-                Previous
+                Previous Question
               </Button>
 
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="primary"
-                  size="md"
-                  onClick={handleNext}
-                  icon={<ArrowRight className="w-4 h-4" />}
-                >
-                  {currentQuestionIndex < totalQuestions - 1 ? 'Next Question' : 'Complete & View Feedback'}
-                </Button>
-              </div>
+              <Button
+                variant="primary"
+                size="md"
+                onClick={handleSendAnswer}
+                disabled={!answerText.trim() || isSubmitting}
+                icon={<Send className="w-4 h-4" />}
+              >
+                {isSubmitting
+                  ? 'Submitting...'
+                  : currentQuestionIndex < totalQuestions - 1
+                  ? 'Submit & Next Question'
+                  : 'Submit & Complete Interview'}
+              </Button>
             </div>
           </div>
 
@@ -217,7 +305,7 @@ export default function InterviewPage() {
         <div className="flex items-center justify-center min-h-screen bg-gray-50 text-gray-500">
           <div className="animate-pulse flex flex-col items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-primary/20" />
-            <p className="text-sm font-medium">Loading interview room...</p>
+            <p className="text-sm font-medium">Loading AI interview room...</p>
           </div>
         </div>
       }
@@ -226,3 +314,4 @@ export default function InterviewPage() {
     </Suspense>
   );
 }
+

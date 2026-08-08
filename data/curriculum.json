@@ -1,0 +1,45 @@
+{
+  "cohort": "AI Cohort · 31 days · 8 modules",
+  "modules": [
+    {
+      "n": 1,
+      "title": "Environment & Tooling",
+      "days": [1, 3]
+    },
+    {
+      "n": 2,
+      "title": "Data Foundations",
+      "days": [4, 6]
+    },
+    {
+      "n": 3,
+      "title": "Embeddings & Vector Search",
+      "days": [7, 10]
+    },
+    {
+      "n": 4,
+      "title": "LLM Core, Prompting & Fine-Tuning",
+      "days": [11, 15]
+    },
+    {
+      "n": 5,
+      "title": "Chatbot Application Build",
+      "days": [16, 20]
+    },
+    {
+      "n": 6,
+      "title": "Agentic AI & MCP",
+      "days": [21, 24]
+    },
+    {
+      "n": 7,
+      "title": "Evaluation, Security & Deployment",
+      "days": [25, 28]
+    },
+    {
+      "n": 8,
+      "title": "Production & Capstone",
+      "days": [29, 31]
+    }
+  ]
+}
